@@ -1,35 +1,45 @@
-mod files;
-mod packages;
+mod dependency;
+mod file_name;
+mod local;
+mod package;
+mod remote;
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     let args = Arguments::parse();
-    let packages: Vec<_> = packages::dependencies(&args.working_directory, &args.excluded)
-        .unwrap()
-        .collect();
-    let license_count: usize = packages
-        .iter()
-        .map(|p| files::license_file_paths(&p.project_folder).count())
-        .sum();
+    let deps =
+        dependency::dependencies(&args.working_directory, &args.excluded, &args.search_remote)?;
     println!(
-        "{license_count} licenses found in {} dependencies",
-        packages.len()
+        "{} licenses found in {} dependencies",
+        deps.iter()
+            .map(|d| d.local_licenses.len() + d.remote_licenses.len())
+            .sum::<usize>(),
+        deps.len()
     );
-    for package in packages {
-        if files::license_file_paths(&package.project_folder).count() == 0 {
-            println!(
-                "{} {} {:?}",
-                package.name, package.version, package.project_folder
-            );
-        }
+    for no_license in deps
+        .iter()
+        .filter(|d| d.local_licenses.is_empty() && d.remote_licenses.is_empty())
+    {
+        println!("no licenses found for {}", no_license.name);
     }
+    Ok(())
 }
 
 #[derive(Parser)]
 struct Arguments {
     #[clap(short, long)]
     excluded: Vec<String>,
+    #[clap(short, long)]
+    search_remote: SearchRemote,
     working_directory: PathBuf,
+}
+
+#[derive(ValueEnum, Clone, Default)]
+enum SearchRemote {
+    Never,
+    #[default]
+    Auto,
+    Always,
 }

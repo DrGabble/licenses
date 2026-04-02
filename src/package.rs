@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 pub struct Package {
     pub name: String,
     pub version: Version,
-    pub license: Option<String>,
+    pub repository: Option<String>,
     pub project_folder: PathBuf,
 }
 
@@ -15,7 +15,7 @@ impl From<cargo_metadata::Package> for Package {
         Self {
             name: package.name.to_string(),
             version: package.version,
-            license: package.license,
+            repository: package.repository,
             project_folder: package
                 .manifest_path
                 .as_std_path()
