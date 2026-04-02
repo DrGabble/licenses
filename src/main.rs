@@ -5,8 +5,9 @@ mod package;
 mod remote;
 mod warning;
 
+use crate::dependency::Dependency;
 use clap::{Parser, ValueEnum};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn main() -> anyhow::Result<()> {
     let args = Arguments::parse();
@@ -15,21 +16,42 @@ fn main() -> anyhow::Result<()> {
     warning::print_warnings(&deps);
     std::fs::create_dir_all(&args.output_directory)?;
     for dependency in deps {
-        for license_path in dependency.local_licenses {
-            let license_name = license_path.file_name().unwrap().to_str().unwrap();
-            let file_name = format!("{}-{}", &dependency.name, license_name);
-            let output_file = args.output_directory.join(file_name);
-            std::fs::copy(license_path, output_file)?;
-        }
+        copy_local(&args, &dependency)?;
+        copy_remote(&args, &dependency)?;
     }
     Ok(())
+}
+
+fn copy_local(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
+    for license_path in &dependency.local_licenses {
+        let license_name = license_path.file_name().unwrap().to_str().unwrap();
+        std::fs::copy(
+            &license_path,
+            output_file(&args.output_directory, &dependency.name, license_name),
+        )?;
+    }
+    Ok(())
+}
+
+fn copy_remote(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
+    for license_url in &dependency.remote_licenses {
+        let license_name = license_url.path_segments().unwrap().last().unwrap();
+        let output_path = output_file(&args.output_directory, &dependency.name, license_name);
+        remote::download(license_url, &output_path)?;
+    }
+    Ok(())
+}
+
+fn output_file(output_directory: &Path, crate_name: &str, license_name: &str) -> PathBuf {
+    let file_name = format!("{}-{}", crate_name, license_name);
+    output_directory.join(file_name)
 }
 
 #[derive(Parser)]
 struct Arguments {
     #[clap(short, long)]
     excluded: Vec<String>,
-    #[clap(short, long)]
+    #[clap(short, long, default_value = "auto")]
     search_remote: SearchRemote,
     #[clap(short, long, default_value = "./")]
     project_directory: PathBuf,
@@ -37,10 +59,9 @@ struct Arguments {
     output_directory: PathBuf,
 }
 
-#[derive(ValueEnum, Clone, Default)]
+#[derive(ValueEnum, Clone)]
 enum SearchRemote {
     Never,
-    #[default]
     Auto,
     Always,
 }

@@ -2,6 +2,7 @@ use crate::file_name::is_license;
 use anyhow::{Context, anyhow};
 use serde::Deserialize;
 use std::fs::FileType;
+use std::path::Path;
 use url::Url;
 
 pub fn license_file_urls(repo_url: &str) -> anyhow::Result<impl Iterator<Item = Url>> {
@@ -15,6 +16,14 @@ pub fn license_file_urls(repo_url: &str) -> anyhow::Result<impl Iterator<Item = 
         .into_iter()
         .filter(|file| is_license(&file.name))
         .filter_map(|file| file.download_url))
+}
+
+pub fn download(url: &url::Url, output: &Path) -> anyhow::Result<()> {
+    std::io::copy(
+        &mut ureq::get(url.as_str()).call()?.into_body().into_reader(),
+        &mut std::fs::File::create(output)?,
+    )?;
+    Ok(())
 }
 
 fn api_url_from_repo_url(repo_url: &str) -> anyhow::Result<String> {
