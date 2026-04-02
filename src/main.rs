@@ -43,7 +43,7 @@ fn copy_remote(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> 
 }
 
 fn output_file(output_directory: &Path, dependency: &Dependency, license_name: &str) -> PathBuf {
-    let file_name = format!("{}-{}", dependency.name, license_name);
+    let file_name = format!("{}-{}", dependency.name.replace('-', "_"), license_name);
     output_directory.join(file_name)
 }
 

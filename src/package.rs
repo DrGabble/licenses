@@ -1,11 +1,9 @@
 use anyhow::Context;
-use cargo_metadata::semver::Version;
 use cargo_metadata::{Metadata, PackageId};
 use std::path::{Path, PathBuf};
 
 pub struct Package {
     pub name: String,
-    pub version: Version,
     pub repository: Option<String>,
     pub project_folder: PathBuf,
 }
@@ -14,7 +12,6 @@ impl From<cargo_metadata::Package> for Package {
     fn from(package: cargo_metadata::Package) -> Self {
         Self {
             name: package.name.to_string(),
-            version: package.version,
             repository: package.repository,
             project_folder: package
                 .manifest_path
