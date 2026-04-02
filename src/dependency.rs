@@ -10,11 +10,11 @@ pub struct Dependency {
 }
 
 pub fn dependencies(
-    working_directory: &Path,
+    project_directory: &Path,
     excluded: &[String],
     search_remote: &SearchRemote,
 ) -> anyhow::Result<Vec<Dependency>> {
-    package::dependencies(working_directory, excluded)?
+    package::dependencies(project_directory, excluded)?
         .map(|package| -> anyhow::Result<Dependency> {
             let local: Vec<_> = local::license_file_paths(&package.project_folder).collect();
             let remote = remote_licenses(&package.repository, &local, search_remote)?;

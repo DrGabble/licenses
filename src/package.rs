@@ -27,11 +27,11 @@ impl From<cargo_metadata::Package> for Package {
 }
 
 pub fn dependencies(
-    project_path: &Path,
+    project_directory: &Path,
     excluded: &[String],
 ) -> anyhow::Result<impl Iterator<Item = Package>> {
     let metadata = cargo_metadata::MetadataCommand::new()
-        .current_dir(project_path)
+        .current_dir(project_directory)
         .exec()
         .context("failed to execute cargo metadata")?;
     let included = included_ids(&metadata, &excluded_ids(&metadata, excluded));

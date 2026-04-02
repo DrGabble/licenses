@@ -11,7 +11,7 @@ use std::path::PathBuf;
 fn main() -> anyhow::Result<()> {
     let args = Arguments::parse();
     let deps =
-        dependency::dependencies(&args.working_directory, &args.excluded, &args.search_remote)?;
+        dependency::dependencies(&args.project_directory, &args.excluded, &args.search_remote)?;
     warning::print_warnings(&deps);
     Ok(())
 }
@@ -22,7 +22,8 @@ struct Arguments {
     excluded: Vec<String>,
     #[clap(short, long)]
     search_remote: SearchRemote,
-    working_directory: PathBuf,
+    #[clap(short, long, default_value = ".")]
+    project_directory: PathBuf,
 }
 
 #[derive(ValueEnum, Clone, Default)]
