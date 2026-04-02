@@ -1,3 +1,8 @@
+pub struct License<T> {
+    pub name: String,
+    pub location: T,
+}
+
 pub fn is_license(file_name: &str) -> bool {
     let file_name = file_name.to_lowercase();
     let prefixes = ["license", "copying", "authors", "copyright"];

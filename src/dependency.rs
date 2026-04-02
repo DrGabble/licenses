@@ -1,11 +1,13 @@
+use crate::local::Local;
 use crate::package::Package;
+use crate::remote::Remote;
 use crate::{SearchRemote, local, package, remote};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub struct Dependency {
     pub name: String,
-    pub local_licenses: Vec<PathBuf>,
-    pub remote_licenses: Vec<url::Url>,
+    pub local_licenses: Vec<Local>,
+    pub remote_licenses: Vec<Remote>,
 }
 
 pub fn dependencies(
@@ -33,9 +35,9 @@ fn package_to_dependency(
 
 fn remote_licenses(
     repo_url: &Option<String>,
-    local: &Vec<PathBuf>,
+    local: &Vec<Local>,
     search_remote: SearchRemote,
-) -> anyhow::Result<Vec<url::Url>> {
+) -> anyhow::Result<Vec<Remote>> {
     if let Some(repo_url) = repo_url
         && should_search_remote(local, search_remote)
     {
@@ -45,7 +47,7 @@ fn remote_licenses(
     }
 }
 
-fn should_search_remote(local: &Vec<PathBuf>, search_remote: SearchRemote) -> bool {
+fn should_search_remote(local: &Vec<Local>, search_remote: SearchRemote) -> bool {
     match (local.len(), search_remote) {
         (0, SearchRemote::Auto) | (_, SearchRemote::Always) => true,
         _ => false,

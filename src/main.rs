@@ -1,5 +1,5 @@
 mod dependency;
-mod file_name;
+mod license;
 mod local;
 mod package;
 mod remote;
@@ -23,21 +23,19 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn copy_local(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
-    for license_path in &dependency.local_licenses {
-        let license_name = license_path.file_name().unwrap().to_str().unwrap();
+    for license in &dependency.local_licenses {
         std::fs::copy(
-            &license_path,
-            output_file(&args.output_directory, &dependency, license_name),
+            &license.location,
+            output_file(&args.output_directory, &dependency, &license.name),
         )?;
     }
     Ok(())
 }
 
 fn copy_remote(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
-    for license_url in &dependency.remote_licenses {
-        let license_name = license_url.path_segments().unwrap().last().unwrap();
-        let output_path = output_file(&args.output_directory, &dependency, license_name);
-        remote::download(license_url, &output_path)?;
+    for license in &dependency.remote_licenses {
+        let output_path = output_file(&args.output_directory, &dependency, &license.name);
+        remote::download(&license.location, &output_path)?;
     }
     Ok(())
 }
