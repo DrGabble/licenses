@@ -1,11 +1,12 @@
 use crate::license;
 use crate::license::License;
+use crate::package::Package;
 use std::path::{Path, PathBuf};
 
 pub type Local = License<PathBuf>;
 
-pub fn license_file_paths(folder: &Path) -> Vec<Local> {
-    std::fs::read_dir(folder)
+pub fn package_local_licenses(package: &Package) -> Vec<Local> {
+    std::fs::read_dir(&package.project_folder)
         .expect("failed to read directory")
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
@@ -13,6 +14,7 @@ pub fn license_file_paths(folder: &Path) -> Vec<Local> {
         .map(|path| {
             let name = path.file_name().unwrap().to_str().unwrap().to_string();
             Local {
+                package: package.name.clone(),
                 location: path,
                 name,
             }

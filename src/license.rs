@@ -1,4 +1,5 @@
 pub struct License<T> {
+    pub package: String,
     pub name: String,
     pub location: T,
 }

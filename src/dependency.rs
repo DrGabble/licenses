@@ -24,8 +24,8 @@ fn package_to_dependency(
     package: Package,
     search_remote: SearchRemote,
 ) -> anyhow::Result<Dependency> {
-    let local: Vec<_> = local::license_file_paths(&package.project_folder);
-    let remote = remote_licenses(&package.repository, &local, search_remote)?;
+    let local: Vec<_> = local::package_local_licenses(&package);
+    let remote = remote_licenses(&package, &local, search_remote)?;
     Ok(Dependency {
         name: package.name,
         local_licenses: local,
@@ -34,14 +34,14 @@ fn package_to_dependency(
 }
 
 fn remote_licenses(
-    repo_url: &Option<String>,
+    package: &Package,
     local: &Vec<Local>,
     search_remote: SearchRemote,
 ) -> anyhow::Result<Vec<Remote>> {
-    if let Some(repo_url) = repo_url
+    if let Some(repo_url) = &package.repository
         && should_search_remote(local, search_remote)
     {
-        Ok(remote::license_file_urls(repo_url)?.collect())
+        Ok(remote::package_remote_licenses(&package.name, repo_url)?.collect())
     } else {
         Ok(Vec::new())
     }

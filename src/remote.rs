@@ -6,7 +6,10 @@ use url::Url;
 
 pub type Remote = License<Url>;
 
-pub fn license_file_urls(repo_url: &str) -> anyhow::Result<impl Iterator<Item = Remote>> {
+pub fn package_remote_licenses(
+    package: &str,
+    repo_url: &str,
+) -> anyhow::Result<impl Iterator<Item = Remote>> {
     Ok(ureq::Agent::new_with_defaults()
         .get(&api_url_from_repo_url(repo_url)?)
         .header("User-Agent", "root-lister/1.0")
@@ -17,6 +20,7 @@ pub fn license_file_urls(repo_url: &str) -> anyhow::Result<impl Iterator<Item = 
         .into_iter()
         .filter(|file| is_license(&file.name))
         .map(|file| Remote {
+            package: package.to_string(),
             location: file.download_url.unwrap(),
             name: file.name,
         }))
