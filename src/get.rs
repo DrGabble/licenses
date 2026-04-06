@@ -8,20 +8,7 @@ pub fn get(args: &Arguments) -> anyhow::Result<ExitCode> {
     let mut reporter = ConfiguredReporter::new(StderrReporter, false, false);
     let deps =
         dependency::dependencies(&args.project_directory, &args.excluded, args.search_remote)?;
-    let total_licenses = deps
-        .iter()
-        .map(|d| d.local_licenses.len() + d.remote_licenses.len())
-        .sum::<usize>();
-    let no_licenses: Vec<_> = deps
-        .iter()
-        .filter(|d| d.local_licenses.is_empty() && d.remote_licenses.is_empty())
-        .map(|d| d.name.clone())
-        .collect();
-    reporter.info(format!(
-        "{} licenses found for {} dependencies",
-        total_licenses,
-        deps.len()
-    ));
+    let no_licenses = dependencies_with_no_licenses(&deps);
     if !no_licenses.is_empty() {
         reporter.warning(format!(
             "{} dependencies with no licenses: {}",
@@ -30,11 +17,31 @@ pub fn get(args: &Arguments) -> anyhow::Result<ExitCode> {
         ));
     }
     std::fs::create_dir_all(&args.output_directory)?;
-    for dependency in deps {
-        copy_local(args, &dependency)?;
-        copy_remote(args, &dependency)?;
+    for dependency in &deps {
+        copy_local(args, dependency)?;
+        copy_remote(args, dependency)?;
     }
+    reporter.info(format!(
+        "{} licenses found for {} dependencies",
+        total_licenses(&deps),
+        deps.len()
+    ));
     Ok(reporter.exit_code())
+}
+
+fn total_licenses(dependencies: &[Dependency]) -> usize {
+    dependencies
+        .iter()
+        .map(|d| d.local_licenses.len() + d.remote_licenses.len())
+        .sum()
+}
+
+fn dependencies_with_no_licenses(dependencies: &[Dependency]) -> Vec<String> {
+    dependencies
+        .iter()
+        .filter(|d| d.local_licenses.is_empty() && d.remote_licenses.is_empty())
+        .map(|d| d.name.clone())
+        .collect()
 }
 
 fn copy_local(args: &Arguments, dependency: &Dependency) -> anyhow::Result<()> {
