@@ -12,6 +12,7 @@ url = { version = "*", features = ["serde"] }
 serde = { version = "*", features = ["derive"] }
 spdx = { version = "*", features = ["detection-parallel", "detection", "detection-inline-cache"] }
 rayon = "*"
+indicatif = { version = "*", features = ["rayon"] }
 
 [lints.clippy]
 print_stdout = "deny"

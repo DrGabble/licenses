@@ -2,13 +2,12 @@ use crate::Arguments;
 use crate::identity::IdentifiedLicense;
 use crate::local::Local;
 use crate::package::Package;
-use crate::report::{ConfiguredReporter, Reporter, StderrReporter};
 use spdx::LicenseId;
 use std::collections::HashSet;
 use std::process::ExitCode;
 
 pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
-    let mut reporter = ConfiguredReporter::new(StderrReporter, false, false);
+    let mut reporter = crate::report::Reporter::new(args);
     let dependencies: Vec<_> =
         crate::package::dependencies(&args.project_directory, &args.excluded)?.collect();
     let licenses = crate::local::output_folder_licenses(&args.output_directory);

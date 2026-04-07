@@ -27,14 +27,18 @@ enum Command {
 
 #[derive(Parser)]
 struct Arguments {
-    #[clap(short, long)]
-    excluded: Vec<String>,
-    #[clap(short, long, default_value = "auto")]
-    search_remote: SearchRemote,
     #[clap(short, long, default_value = "./")]
     project_directory: PathBuf,
     #[clap(short, long, default_value = "./licenses/")]
     output_directory: PathBuf,
+    #[clap(short, long)]
+    excluded: Vec<String>,
+    #[clap(short, long, default_value = "auto")]
+    search_remote: SearchRemote,
+    #[clap(short, long, default_value = "false")]
+    quiet: bool,
+    #[clap(short = 'w', long, default_value = "false")]
+    error_on_warning: bool,
 }
 
 #[derive(ValueEnum, Clone, Copy)]

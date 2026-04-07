@@ -1,11 +1,11 @@
 use crate::dependency::Dependency;
-use crate::report::{ConfiguredReporter, Reporter, StderrReporter};
 use crate::{Arguments, dependency, remote};
+use indicatif::ProgressIterator;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 pub fn get(args: &Arguments) -> anyhow::Result<ExitCode> {
-    let mut reporter = ConfiguredReporter::new(StderrReporter, false, false);
+    let mut reporter = crate::report::Reporter::new(args);
     let deps =
         dependency::dependencies(&args.project_directory, &args.excluded, args.search_remote)?;
     let no_licenses = dependencies_with_no_licenses(&deps);
@@ -17,7 +17,7 @@ pub fn get(args: &Arguments) -> anyhow::Result<ExitCode> {
         ));
     }
     std::fs::create_dir_all(&args.output_directory)?;
-    for dependency in &deps {
+    for dependency in deps.iter().progress_count(deps.len() as u64) {
         copy_local(args, dependency)?;
         copy_remote(args, dependency)?;
     }

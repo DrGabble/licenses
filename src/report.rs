@@ -1,25 +1,39 @@
+use crate::Arguments;
 use std::process::ExitCode;
 
-pub trait Reporter {
-    fn info(&self, message: String);
-    fn warning(&mut self, message: String);
-    fn error(&mut self, message: String);
-}
-
-pub struct ConfiguredReporter<T> {
-    reporter: T,
-    silent: bool,
-    warnings_as_errors: bool,
+pub struct Reporter {
+    quiet: bool,
+    error_on_warning: bool,
     errored: bool,
 }
 
-impl<T> ConfiguredReporter<T> {
-    pub fn new(reporter: T, silent: bool, warnings_as_errors: bool) -> Self {
+impl Reporter {
+    pub fn new(args: &Arguments) -> Self {
         Self {
-            reporter,
-            silent,
-            warnings_as_errors,
+            quiet: args.quiet,
+            error_on_warning: args.error_on_warning,
             errored: false,
+        }
+    }
+
+    pub fn info(&self, message: String) {
+        if !self.quiet {
+            eprintln!("{}", message);
+        }
+    }
+
+    pub fn warning(&mut self, message: String) {
+        if self.error_on_warning {
+            self.error(message);
+        } else if !self.quiet {
+            eprintln!("warning: {}", message);
+        }
+    }
+
+    pub fn error(&mut self, message: String) {
+        self.errored |= true;
+        if !self.quiet {
+            eprintln!("error: {}", message);
         }
     }
 
@@ -29,45 +43,5 @@ impl<T> ConfiguredReporter<T> {
         } else {
             ExitCode::SUCCESS
         }
-    }
-}
-
-impl<T: Reporter> Reporter for ConfiguredReporter<T> {
-    fn info(&self, message: String) {
-        if !self.silent {
-            self.reporter.info(message);
-        }
-    }
-
-    fn warning(&mut self, message: String) {
-        if self.warnings_as_errors {
-            self.errored |= true;
-        }
-        if !self.silent {
-            self.reporter.warning(message);
-        }
-    }
-
-    fn error(&mut self, message: String) {
-        self.errored |= true;
-        if !self.silent {
-            self.reporter.error(message);
-        }
-    }
-}
-
-pub struct StderrReporter;
-
-impl Reporter for StderrReporter {
-    fn info(&self, message: String) {
-        eprintln!("{}", message);
-    }
-
-    fn warning(&mut self, message: String) {
-        eprintln!("warning: {}", message);
-    }
-
-    fn error(&mut self, message: String) {
-        eprintln!("error: {}", message);
     }
 }
