@@ -2,7 +2,6 @@ use crate::Arguments;
 use crate::identity::IdentifiedLicense;
 use crate::local::Local;
 use crate::package::Package;
-use spdx::LicenseId;
 use std::collections::HashSet;
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -79,7 +78,7 @@ fn missing_or_unexpected_licenses(
 fn unknown_license_types(licenses: &[IdentifiedLicense]) -> Vec<String> {
     licenses
         .iter()
-        .filter(|l| l.id().is_none())
+        .filter(|l| l.ids().next().is_none())
         .filter_map(|l| l.license.location.file_name())
         .map(|file_name| file_name.to_string_lossy().to_string())
         .collect()
@@ -88,7 +87,7 @@ fn unknown_license_types(licenses: &[IdentifiedLicense]) -> Vec<String> {
 fn copy_left_licenses(licenses: &[IdentifiedLicense]) -> Vec<String> {
     licenses
         .iter()
-        .filter(|l| l.id().map(LicenseId::is_copyleft).unwrap_or(false))
+        .filter(|l| l.ids().any(|l| l.is_copyleft()))
         .filter_map(|l| l.license.location.file_name())
         .map(|file_name| file_name.to_string_lossy().to_string())
         .collect()
@@ -138,10 +137,11 @@ fn spdx_requirements_met(
     expression: &spdx::Expression,
     licenses: &[IdentifiedLicense],
 ) -> bool {
-    expression.evaluate(|requirement| {
-        licenses
+    expression.evaluate(|requirement| match requirement.license.id() {
+        Some(id) => licenses
             .iter()
-            .any(|l| l.license.package == package && l.id() == requirement.license.id())
+            .any(|l| l.license.package == package && l.ids().any(|l| *l == id)),
+        None => false,
     })
 }
 
