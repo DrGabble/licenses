@@ -24,55 +24,66 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     ));
     let extraneous = extraneous_licenses(&dependencies, &expressions, &licenses);
 
-    if !missing.is_empty() {
-        reporter.error(format!(
-            "{} dependencies without any licenses: {}",
-            missing.len(),
-            missing.join(", ")
-        ));
-    }
+    report_if_any(
+        |m| reporter.error(m),
+        &missing,
+        String::to_string,
+        "dependencies without any licenses",
+    );
 
-    if !unmet_spdx.is_empty() {
-        reporter.error(format!(
-            "{} packages without licenses required by their Cargo.toml package.license field: {}",
-            unmet_spdx.len(),
-            unmet_spdx.join(", ")
-        ));
-    }
+    report_if_any(
+        |m| reporter.error(m),
+        &unmet_spdx,
+        String::to_string,
+        "packages without licenses required by their Cargo.toml package.license field",
+    );
 
-    if !copy_left.is_empty() {
-        reporter.error(format!(
-            "{} files with at least one copy-left license: {}",
-            copy_left.len(),
-            copy_left.join(", ")
-        ));
-    }
+    report_if_any(
+        |m| reporter.error(m),
+        &copy_left,
+        String::to_string,
+        "files with at least one copy-left license",
+    );
 
-    if !unknown.is_empty() {
-        reporter.warning(format!(
-            "{} license files types with unknown types: {}",
-            unknown.len(),
-            unknown.join(", ")
-        ));
-    }
+    report_if_any(
+        |m| reporter.warning(m),
+        &unknown,
+        String::to_string,
+        "license files types with unknown types",
+    );
 
-    if !extraneous.is_empty() {
-        reporter.info(format!(
-            "{} licenses which are not required according to dependency Cargo.toml files: {}",
-            extraneous.len(),
-            extraneous.join(", ")
-        ));
-    }
+    report_if_any(
+        |m| reporter.info(m),
+        &extraneous,
+        String::to_string,
+        "licenses which are not required according to dependency Cargo.toml files",
+    );
 
-    if !unexpected.is_empty() {
-        reporter.info(format!(
-            "{} license files from packages that are not dependencies: {}",
-            unexpected.len(),
-            unexpected.join(", ")
-        ));
-    }
+    report_if_any(
+        |m| reporter.info(m),
+        &unexpected,
+        String::to_string,
+        "license files from packages that are not dependencies",
+    );
 
     Ok(reporter.exit_code())
+}
+
+fn report_if_any<F, T, I>(report: F, items: &[T], item_to_string: I, message: &str)
+where
+    F: FnOnce(String),
+    I: Fn(&T) -> String,
+{
+    if items.is_empty() {
+        return;
+    }
+    let strings: Vec<_> = items.iter().map(item_to_string).collect();
+    report(format!(
+        "{} {}: {}",
+        strings.len(),
+        message,
+        strings.join(", ")
+    ));
 }
 
 fn missing_or_unexpected_licenses(
