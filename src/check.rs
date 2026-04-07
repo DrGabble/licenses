@@ -68,7 +68,8 @@ fn unknown_license_types(licenses: &[IdentifiedLicense]) -> Vec<String> {
     licenses
         .iter()
         .filter(|l| l.id().is_none())
-        .map(|l| l.license.location.to_string_lossy().to_string())
+        .filter_map(|l| l.license.location.file_name())
+        .map(|file_name| file_name.to_string_lossy().to_string())
         .collect()
 }
 
@@ -76,6 +77,7 @@ fn copy_left_licenses(licenses: &[IdentifiedLicense]) -> Vec<String> {
     licenses
         .iter()
         .filter(|l| l.id().map(LicenseId::is_copyleft).unwrap_or(false))
-        .map(|l| l.license.location.to_string_lossy().to_string())
+        .filter_map(|l| l.license.location.file_name())
+        .map(|file_name| file_name.to_string_lossy().to_string())
         .collect()
 }

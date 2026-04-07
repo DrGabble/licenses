@@ -1,4 +1,5 @@
 use crate::Arguments;
+use colored::Colorize;
 use std::process::ExitCode;
 
 pub struct Reporter {
@@ -26,14 +27,14 @@ impl Reporter {
         if self.error_on_warning {
             self.error(message);
         } else if !self.quiet {
-            eprintln!("warning: {}", message);
+            eprintln!("{}: {}", "warning".yellow(), message);
         }
     }
 
     pub fn error(&mut self, message: String) {
         self.errored |= true;
         if !self.quiet {
-            eprintln!("error: {}", message);
+            eprintln!("{}: {}", "error".red(), message);
         }
     }
 
