@@ -5,6 +5,16 @@ use std::path::{Path, PathBuf};
 
 pub type Local = License<PathBuf>;
 
+impl License<PathBuf> {
+    pub fn file_name(&self) -> String {
+        self.location
+            .file_name()
+            .expect("invalid local license file path")
+            .to_string_lossy()
+            .to_string()
+    }
+}
+
 pub fn package_local_licenses(package: &Package) -> Vec<Local> {
     std::fs::read_dir(&package.project_folder)
         .expect("failed to read directory")

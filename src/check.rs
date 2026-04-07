@@ -2,6 +2,7 @@ use crate::Arguments;
 use crate::identity::IdentifiedLicense;
 use crate::local::Local;
 use crate::package::Package;
+use spdx::{LicenseId, LicenseItem, Licensee};
 use std::collections::HashSet;
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -15,11 +16,13 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     let licenses = crate::identity::identified_licenses(&licenses)?;
     let unknown = sorted(unknown_license_types(&licenses));
     let copy_left = sorted(copy_left_licenses(&licenses));
+    let expressions = spdx_expressions(&dependencies)?;
     let unmet_spdx = sorted(packages_with_unmet_spdx(
         &dependencies,
-        &spdx_expressions(&dependencies)?,
+        &expressions,
         &licenses,
     ));
+    let extraneous = extraneous_licenses(&dependencies, &expressions, &licenses);
 
     if !missing.is_empty() {
         reporter.error(format!(
@@ -61,6 +64,14 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
         ));
     }
 
+    if !extraneous.is_empty() {
+        reporter.warning(format!(
+            "{} licenses which are not required according to dependency Cargo.toml files: {}",
+            extraneous.len(),
+            extraneous.join(", ")
+        ));
+    }
+
     Ok(reporter.exit_code())
 }
 
@@ -75,13 +86,10 @@ fn missing_or_unexpected_licenses(
         found
             .difference(&expected)
             .flat_map(|p| {
-                licenses.iter().filter(|l| l.package == *p).map(|l| {
-                    l.location
-                        .file_name()
-                        .unwrap()
-                        .to_string_lossy()
-                        .to_string()
-                })
+                licenses
+                    .iter()
+                    .filter(|l| l.package == *p)
+                    .map(|l| l.file_name())
             })
             .collect(),
     );
@@ -92,8 +100,7 @@ fn unknown_license_types(licenses: &[IdentifiedLicense]) -> Vec<String> {
     licenses
         .iter()
         .filter(|l| l.ids().next().is_none())
-        .filter_map(|l| l.license.location.file_name())
-        .map(|file_name| file_name.to_string_lossy().to_string())
+        .map(|l| l.license.file_name())
         .collect()
 }
 
@@ -101,8 +108,7 @@ fn copy_left_licenses(licenses: &[IdentifiedLicense]) -> Vec<String> {
     licenses
         .iter()
         .filter(|l| l.ids().any(|l| l.is_copyleft()))
-        .filter_map(|l| l.license.location.file_name())
-        .map(|file_name| file_name.to_string_lossy().to_string())
+        .map(|l| l.license.file_name())
         .collect()
 }
 
@@ -156,6 +162,66 @@ fn spdx_requirements_met(
             .any(|l| l.license.package == package && l.ids().any(|l| *l == id)),
         None => false,
     })
+}
+
+fn extraneous_licenses(
+    dependencies: &[Package],
+    expressions: &[Option<spdx::Expression>],
+    licenses: &[IdentifiedLicense],
+) -> Vec<String> {
+    dependencies
+        .iter()
+        .zip(expressions.iter())
+        .filter_map(|(package, expression)| match expression {
+            Some(expression) => Some((package, expression)),
+            None => None,
+        })
+        .flat_map(|(package, expression)| {
+            extraneous_package_licenses(package, expression, licenses)
+        })
+        .collect()
+}
+
+fn extraneous_package_licenses<'a>(
+    package: &Package,
+    expression: &spdx::Expression,
+    licenses: &[IdentifiedLicense<'a>],
+) -> Vec<String> {
+    let package_licenses: Vec<_> = licenses
+        .iter()
+        .filter(|l| l.license.package == package.name)
+        .collect();
+    let required = minimal_requirements(expression, &package_licenses);
+    package_licenses
+        .into_iter()
+        .filter(|l| !required.iter().any(|r| r.name != l.license.name))
+        .map(|l| format!("{} (not {})", l.license.file_name(), expression))
+        .collect()
+}
+
+fn minimal_requirements<'a>(
+    expression: &spdx::Expression,
+    licenses: &[&IdentifiedLicense<'a>],
+) -> Vec<LicenseId> {
+    let licensee: Vec<_> = licenses
+        .iter()
+        .flat_map(|l| l.ids())
+        .map(|id| {
+            Licensee::new(
+                LicenseItem::Spdx {
+                    id: *id,
+                    or_later: false,
+                },
+                None,
+            )
+        })
+        .collect();
+    expression
+        .minimized_requirements(licensee.iter())
+        .into_iter()
+        .flatten()
+        .filter_map(|l| l.license.id())
+        .collect()
 }
 
 fn sorted<T: Ord>(mut vector: Vec<T>) -> Vec<T> {
