@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct License<T> {
     pub package: String,
     pub name: String,

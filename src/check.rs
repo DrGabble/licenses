@@ -4,6 +4,7 @@ use crate::local::Local;
 use crate::package::Package;
 use spdx::LicenseId;
 use std::collections::HashSet;
+use std::path::PathBuf;
 use std::process::ExitCode;
 
 pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
@@ -13,8 +14,13 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
     let licenses = crate::local::output_folder_licenses(&args.output_directory);
     let (missing, unexpected) = missing_or_unexpected_licenses(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
-    let unknown = unknown_license_types(&licenses);
-    let copy_left = copy_left_licenses(&licenses);
+    let unknown = sorted(unknown_license_types(&licenses));
+    let copy_left = sorted(copy_left_licenses(&licenses));
+    let unmet_spdx = sorted(packages_with_unmet_spdx(
+        &dependencies,
+        &spdx_expressions(&dependencies)?,
+        &licenses,
+    ));
 
     if !missing.is_empty() {
         reporter.error(format!(
@@ -48,6 +54,14 @@ pub fn check(args: &Arguments) -> anyhow::Result<ExitCode> {
         ));
     }
 
+    if !unmet_spdx.is_empty() {
+        reporter.error(format!(
+            "{} packages without licenses required by their cargo toml: {}",
+            unmet_spdx.len(),
+            unmet_spdx.join(", ")
+        ));
+    }
+
     Ok(reporter.exit_code())
 }
 
@@ -57,10 +71,8 @@ fn missing_or_unexpected_licenses(
 ) -> (Vec<String>, Vec<String>) {
     let expected: HashSet<_> = dependencies.iter().map(|p| p.name.clone()).collect();
     let found: HashSet<_> = licenses.iter().map(|l| l.package.clone()).collect();
-    let mut missing: Vec<_> = expected.difference(&found).cloned().collect();
-    let mut unexpected: Vec<_> = found.difference(&expected).cloned().collect();
-    missing.sort();
-    unexpected.sort();
+    let missing: Vec<_> = sorted(expected.difference(&found).cloned().collect());
+    let unexpected: Vec<_> = sorted(found.difference(&expected).cloned().collect());
     (missing, unexpected)
 }
 
@@ -80,4 +92,60 @@ fn copy_left_licenses(licenses: &[IdentifiedLicense]) -> Vec<String> {
         .filter_map(|l| l.license.location.file_name())
         .map(|file_name| file_name.to_string_lossy().to_string())
         .collect()
+}
+
+fn spdx_expressions(dependencies: &[Package]) -> anyhow::Result<Vec<Option<spdx::Expression>>> {
+    dependencies
+        .iter()
+        .map(|package| package.project_folder.join("Cargo.toml"))
+        .map(cargo_toml_spdx_expression)
+        .collect()
+}
+
+fn cargo_toml_spdx_expression(path: PathBuf) -> anyhow::Result<Option<spdx::Expression>> {
+    let file = std::fs::read_to_string(path)?;
+    let document = file.parse::<toml_edit::Document<String>>()?;
+    let text = match document
+        .get("package")
+        .and_then(|i| i.get("license"))
+        .and_then(|i| i.as_str())
+    {
+        Some(text) => text,
+        None => return Ok(None),
+    };
+    Ok(spdx::Expression::parse(text).ok())
+}
+
+fn packages_with_unmet_spdx(
+    dependencies: &[Package],
+    expressions: &[Option<spdx::Expression>],
+    licenses: &[IdentifiedLicense],
+) -> Vec<String> {
+    dependencies
+        .iter()
+        .zip(expressions.iter())
+        .filter_map(|(package, expression)| match expression {
+            Some(expression) => Some((package, expression)),
+            None => None,
+        })
+        .filter(|(package, expression)| !spdx_requirements_met(&package.name, expression, licenses))
+        .map(|(package, expression)| format!("{} ({})", package.name, expression))
+        .collect()
+}
+
+fn spdx_requirements_met(
+    package: &str,
+    expression: &spdx::Expression,
+    licenses: &[IdentifiedLicense],
+) -> bool {
+    expression.evaluate(|requirement| {
+        licenses
+            .iter()
+            .any(|l| l.license.package == package && l.id() == requirement.license.id())
+    })
+}
+
+fn sorted<T: Ord>(mut vector: Vec<T>) -> Vec<T> {
+    vector.sort();
+    vector
 }

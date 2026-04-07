@@ -14,6 +14,7 @@ spdx = { version = "*", features = ["detection-parallel", "detection", "detectio
 rayon = "*"
 indicatif = { version = "*", features = ["rayon"] }
 colored = "*"
+toml_edit = "*"
 
 [lints.clippy]
 print_stdout = "deny"
