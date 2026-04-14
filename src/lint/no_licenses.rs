@@ -16,9 +16,6 @@ pub fn no_licenses(
     Some(Report {
         lint: Lint::NoLicenses,
         level: Level::Warning,
-        message: format!(
-            "no licenses found at all in '{}'",
-            license_directory.display()
-        ),
+        items: vec![license_directory.display().to_string()],
     })
 }

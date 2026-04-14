@@ -1,11 +1,25 @@
 use crate::Lint;
 use documented::DocumentedVariants;
+use std::fmt::{Display, Formatter};
 
 pub struct Report {
     pub lint: Lint,
     pub level: Level,
-    pub message: String,
+    pub items: Vec<String>,
 }
+
+impl Display for Report {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} {}: {}",
+            self.items.len(),
+            self.lint.get_variant_docs(),
+            self.items.join(", ")
+        )
+    }
+}
+
 #[derive(Copy, Clone)]
 pub enum Level {
     Info,
@@ -23,18 +37,8 @@ where
 {
     fn report_if_any(self, lint: Lint, level: Level) -> Option<Report> {
         let mut iterator = self.into_iter();
-        let mut strings: Vec<_> = std::iter::once(iterator.next()?).chain(iterator).collect();
-        strings.sort();
-        let message = format!(
-            "{} {}: {}",
-            strings.len(),
-            lint.get_variant_docs(),
-            strings.join(", ")
-        );
-        Some(Report {
-            lint,
-            level,
-            message,
-        })
+        let mut items: Vec<_> = std::iter::once(iterator.next()?).chain(iterator).collect();
+        items.sort();
+        Some(Report { lint, level, items })
     }
 }

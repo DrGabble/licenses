@@ -18,9 +18,9 @@ impl Reporter {
 
     pub fn report(&mut self, report: Report) {
         match report.level {
-            Level::Info => self.info(report.message),
-            Level::Warning => self.warning(report.message),
-            Level::Error => self.error(report.message),
+            Level::Info => self.info(report.to_string()),
+            Level::Warning => self.warning(report.to_string()),
+            Level::Error => self.error(report.to_string()),
         }
     }
 
