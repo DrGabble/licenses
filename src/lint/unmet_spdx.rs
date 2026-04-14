@@ -1,10 +1,12 @@
 use crate::Lint;
 use crate::identity::IdentifiedLicense;
-use crate::lint::report::ReportIfAny;
 use crate::lint::{Level, Report};
 use crate::package::Package;
 
-pub fn unmet_spdx(dependencies: &[Package], licenses: &[IdentifiedLicense]) -> Option<Report> {
+pub fn unmet_spdx(
+    dependencies: &[Package],
+    licenses: &[IdentifiedLicense],
+) -> impl Iterator<Item = Report> {
     dependencies
         .iter()
         .filter_map(|package| {
@@ -15,7 +17,11 @@ pub fn unmet_spdx(dependencies: &[Package], licenses: &[IdentifiedLicense]) -> O
         })
         .filter(|(package, expression)| !spdx_requirements_met(&package.name, expression, licenses))
         .map(|(package, expression)| format!("{} ({})", package.name, expression))
-        .report_if_any(Lint::UnmetSpdx, Level::Error)
+        .map(|item| Report {
+            lint: Lint::UnmetSpdx,
+            level: Level::Error,
+            item,
+        })
 }
 
 fn spdx_requirements_met(

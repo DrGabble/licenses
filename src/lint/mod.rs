@@ -7,18 +7,18 @@ mod report;
 mod unknown_type;
 mod unmet_spdx;
 
-use clap::ValueEnum;
 pub use copy_left::copy_left;
-use documented::DocumentedVariants;
 pub use extraneous::extraneous;
 pub use misnamed::misnamed;
 pub use missing_or_unexpected::missing_or_unexpected;
 pub use no_licenses::no_licenses;
-pub use report::{Level, Report};
+pub use report::{CombineReports, CombinedReport, Level, Report};
 pub use unknown_type::unknown_type;
 pub use unmet_spdx::unmet_spdx;
 
-#[derive(Debug, Clone, Copy, ValueEnum, Hash, PartialEq, Eq, DocumentedVariants)]
+#[derive(
+    Debug, Clone, Copy, clap::ValueEnum, Hash, PartialEq, Eq, documented::DocumentedVariants,
+)]
 pub enum Lint {
     /// Dependencies with at least one copy-left license
     CopyLeft,

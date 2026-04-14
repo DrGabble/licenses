@@ -16,6 +16,6 @@ pub fn no_licenses(
     Some(Report {
         lint: Lint::NoLicenses,
         level: Level::Warning,
-        items: vec![license_directory.display().to_string()],
+        item: license_directory.display().to_string(),
     })
 }

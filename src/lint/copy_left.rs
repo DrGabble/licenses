@@ -1,11 +1,14 @@
-use super::report::{Level, Report, ReportIfAny};
+use super::report::{Level, Report};
 use crate::Lint;
 use crate::identity::IdentifiedLicense;
 
-pub fn copy_left(licenses: &[IdentifiedLicense]) -> Option<Report> {
+pub fn copy_left(licenses: &[IdentifiedLicense]) -> impl Iterator<Item = Report> {
     licenses
         .iter()
         .filter(|l| l.ids().any(|l| l.is_copyleft()))
-        .map(|l| l.license.file_name())
-        .report_if_any(Lint::CopyLeft, Level::Error)
+        .map(|l| Report {
+            lint: Lint::CopyLeft,
+            level: Level::Error,
+            item: l.license.file_name(),
+        })
 }

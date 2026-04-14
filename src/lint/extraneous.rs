@@ -1,11 +1,13 @@
 use crate::Lint;
 use crate::identity::IdentifiedLicense;
-use crate::lint::report::ReportIfAny;
 use crate::lint::{Level, Report};
 use crate::package::Package;
 use spdx::{LicenseId, LicenseItem, Licensee};
 
-pub fn extraneous(dependencies: &[Package], licenses: &[IdentifiedLicense]) -> Option<Report> {
+pub fn extraneous(
+    dependencies: &[Package],
+    licenses: &[IdentifiedLicense],
+) -> impl Iterator<Item = Report> {
     dependencies
         .iter()
         .filter_map(|package| {
@@ -17,7 +19,11 @@ pub fn extraneous(dependencies: &[Package], licenses: &[IdentifiedLicense]) -> O
         .flat_map(|(package, expression)| {
             extraneous_package_licenses(package, expression, licenses)
         })
-        .report_if_any(Lint::Extraneous, Level::Info)
+        .map(|item| Report {
+            lint: Lint::Extraneous,
+            level: Level::Info,
+            item,
+        })
 }
 
 fn extraneous_package_licenses<'a>(

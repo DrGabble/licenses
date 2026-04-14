@@ -1,9 +1,8 @@
 use crate::Lint;
 use crate::identity::IdentifiedLicense;
-use crate::lint::report::ReportIfAny;
 use crate::lint::{Level, Report};
 
-pub fn misnamed(licenses: &[IdentifiedLicense]) -> Option<Report> {
+pub fn misnamed(licenses: &[IdentifiedLicense]) -> impl Iterator<Item = Report> {
     licenses
         .iter()
         .filter(|l| match l.id_from_name {
@@ -11,7 +10,11 @@ pub fn misnamed(licenses: &[IdentifiedLicense]) -> Option<Report> {
             _ => false,
         })
         .map(display_misnamed)
-        .report_if_any(Lint::Misnamed, Level::Warning)
+        .map(|item| Report {
+            lint: Lint::Misnamed,
+            level: Level::Warning,
+            item,
+        })
 }
 
 fn display_misnamed(l: &IdentifiedLicense) -> String {

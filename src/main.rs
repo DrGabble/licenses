@@ -17,6 +17,7 @@ use crate::lint::Lint;
 use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
 use std::process::ExitCode;
+use std::str::FromStr;
 
 fn main() -> anyhow::Result<ExitCode> {
     match Command::parse() {
@@ -62,15 +63,15 @@ struct Arguments {
     #[clap(short, long, default_value = "false")]
     /// Do not print any logging to stderr
     quiet: bool,
-    #[clap(short, long)]
-    /// Allow violations of this specific lint, reporting as info only.
-    allow: Vec<Lint>,
-    #[clap(short, long)]
-    /// Warn on violations of this specific lint. Override allow if set.
-    warn: Vec<Lint>,
-    #[clap(short, long)]
-    /// Deny violations of this specific lint, reporting as an error. Overrides allow or warn if set.
-    deny: Vec<Lint>,
+    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
+    /// Allow violations of this specific lint, reporting as info only. Sub filters always override non-sub ones.
+    allow: Vec<Filter>,
+    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
+    /// Warn on violations of this specific lint. Override allow if set. Sub filters always override non-sub ones.
+    warn: Vec<Filter>,
+    #[clap(short, long, value_name = "LINT_NAME[:SUB_FILTER]")]
+    /// Deny violations of this specific lint, reporting as an error. Overrides allow or warn if set. Sub filters always override non-sub ones.
+    deny: Vec<Filter>,
 }
 
 #[derive(ValueEnum, Clone, Copy)]
@@ -81,4 +82,25 @@ enum SearchRemote {
     Auto,
     /// always search remotely licenses, even if one or more found locally
     Always,
+}
+
+#[derive(Clone)]
+struct Filter {
+    lint: Lint,
+    sub_filter: Option<String>,
+}
+
+impl FromStr for Filter {
+    type Err = String;
+
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let (lint, sub_filter) = match string.split_once(":") {
+            Some((prefix, suffix)) => (prefix, Some(suffix.to_string())),
+            None => (string, None),
+        };
+        Ok(Self {
+            lint: Lint::from_str(lint, true)?,
+            sub_filter,
+        })
+    }
 }

@@ -1,5 +1,5 @@
 use crate::Arguments;
-use crate::lint::{Level, Report};
+use crate::lint::{CombinedReport, Level};
 use colored::Colorize;
 use std::process::ExitCode;
 
@@ -16,7 +16,7 @@ impl Reporter {
         }
     }
 
-    pub fn report(&mut self, report: Report) {
+    pub fn report(&mut self, report: CombinedReport) {
         match report.level {
             Level::Info => self.info(report.to_string()),
             Level::Warning => self.warning(report.to_string()),

@@ -1,14 +1,21 @@
 use crate::Lint;
 use documented::DocumentedVariants;
+use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 
 pub struct Report {
     pub lint: Lint,
     pub level: Level,
+    pub item: String,
+}
+
+pub struct CombinedReport {
+    pub lint: Lint,
+    pub level: Level,
     pub items: Vec<String>,
 }
 
-impl Display for Report {
+impl Display for CombinedReport {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -20,25 +27,26 @@ impl Display for Report {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub enum Level {
     Info,
     Warning,
     Error,
 }
 
-pub trait ReportIfAny {
-    fn report_if_any(self, lint: Lint, level: Level) -> Option<Report>;
+pub trait CombineReports {
+    fn combine_reports(self) -> impl Iterator<Item = CombinedReport>;
 }
 
-impl<I> ReportIfAny for I
+impl<I> CombineReports for I
 where
-    I: IntoIterator<Item = String>,
+    I: IntoIterator<Item = Report>,
 {
-    fn report_if_any(self, lint: Lint, level: Level) -> Option<Report> {
-        let mut iterator = self.into_iter();
-        let mut items: Vec<_> = std::iter::once(iterator.next()?).chain(iterator).collect();
-        items.sort();
-        Some(Report { lint, level, items })
+    fn combine_reports(self) -> impl Iterator<Item = CombinedReport> {
+        self.into_iter()
+            .into_group_map_by(|r| (r.lint, r.level))
+            .into_iter()
+            .map(|(key, group)| (key, group.into_iter().map(|r| r.item).sorted().collect()))
+            .map(|((lint, level), items)| CombinedReport { lint, level, items })
     }
 }

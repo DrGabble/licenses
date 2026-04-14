@@ -1,11 +1,15 @@
-use super::report::{Level, Report, ReportIfAny};
+use super::report::{Level, Report};
 use crate::Lint;
 use crate::identity::IdentifiedLicense;
 
-pub fn unknown_type(licenses: &[IdentifiedLicense]) -> Option<Report> {
+pub fn unknown_type(licenses: &[IdentifiedLicense]) -> impl Iterator<Item = Report> {
     licenses
         .iter()
         .filter(|l| l.ids().next().is_none())
         .map(|l| l.license.file_name())
-        .report_if_any(Lint::UnknownType, Level::Warning)
+        .map(|item| Report {
+            lint: Lint::UnknownType,
+            level: Level::Warning,
+            item,
+        })
 }
