@@ -1,3 +1,4 @@
+use crate::Lint;
 use crate::identity::IdentifiedLicense;
 use crate::lint::report::ReportIfAny;
 use crate::lint::{Level, Report};
@@ -17,6 +18,7 @@ pub fn extraneous(dependencies: &[Package], licenses: &[IdentifiedLicense]) -> O
             extraneous_package_licenses(package, expression, licenses)
         })
         .report_if_any(
+            Lint::Extraneous,
             Level::Info,
             "licenses which are not required according to dependency Cargo.toml files",
             |s| s,

@@ -1,3 +1,4 @@
+use crate::Lint;
 use crate::identity::IdentifiedLicense;
 use crate::lint::{Level, Report};
 use crate::package::Package;
@@ -13,6 +14,7 @@ pub fn no_licenses(
     }
 
     Some(Report {
+        lint: Lint::NoLicenses,
         level: Level::Warning,
         message: format!(
             "no licenses found at all in '{}'",

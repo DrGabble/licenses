@@ -1,5 +1,6 @@
 mod check;
 mod dependency;
+mod filter;
 mod get;
 mod identity;
 mod interrupt;
@@ -15,6 +16,7 @@ mod summary;
 use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
 use std::process::ExitCode;
+use std::str::FromStr;
 
 fn main() -> anyhow::Result<ExitCode> {
     match Command::parse() {
@@ -63,6 +65,9 @@ struct Arguments {
     #[clap(short = 'w', long, default_value = "false")]
     /// Report all warnings as errors, including exiting with a non-zero exit code
     error_on_warning: bool,
+    #[clap(short, long, value_name = "LINT_NAME[:SPECIFIC_ITEM]")]
+    /// Always allow violations of this specific lint (optionally scoped to just the specific instance)
+    allow: Vec<Filter>,
 }
 
 #[derive(ValueEnum, Clone, Copy)]
@@ -73,4 +78,37 @@ enum SearchRemote {
     Auto,
     /// always search remotely licenses, even if one or more found locally
     Always,
+}
+
+#[derive(Debug, Clone)]
+struct Filter {
+    lint: Lint,
+    sub_filter: Option<String>,
+}
+
+impl FromStr for Filter {
+    type Err = String;
+
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let (lint_name, sub_filter) = match string.split_once(":") {
+            Some((prefix, suffix)) => (prefix, Some(suffix.to_string())),
+            None => (string, None),
+        };
+        Ok(Self {
+            lint: Lint::from_str(lint_name, true)?,
+            sub_filter,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum, Hash, PartialEq, Eq)]
+enum Lint {
+    CopyLeft,
+    Extraneous,
+    Misnamed,
+    Missing,
+    Unexpected,
+    NoLicenses,
+    UnknownType,
+    UnmetSpdx,
 }

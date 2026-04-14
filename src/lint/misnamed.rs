@@ -1,3 +1,4 @@
+use crate::Lint;
 use crate::identity::IdentifiedLicense;
 use crate::lint::report::ReportIfAny;
 use crate::lint::{Level, Report};
@@ -10,6 +11,7 @@ pub fn misnamed(licenses: &[IdentifiedLicense]) -> Option<Report> {
             _ => false,
         })
         .report_if_any(
+            Lint::Misnamed,
             Level::Warning,
             "license files with inferred types that don't match between name vs contents",
             display_misnamed,

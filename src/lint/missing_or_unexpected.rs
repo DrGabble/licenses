@@ -1,3 +1,4 @@
+use crate::Lint;
 use crate::lint::report::ReportIfAny;
 use crate::lint::{Level, Report};
 use crate::local::Local;
@@ -12,6 +13,7 @@ pub fn missing_or_unexpected(
     let found: HashSet<_> = licenses.iter().map(|l| l.package.clone()).collect();
 
     let missing = expected.difference(&found).cloned().report_if_any(
+        Lint::Missing,
         Level::Error,
         "dependencies without any licenses",
         |s| s.to_string(),
@@ -26,6 +28,7 @@ pub fn missing_or_unexpected(
                 .map(|l| l.file_name())
         })
         .report_if_any(
+            Lint::Unexpected,
             Level::Info,
             "license files from packages that are not dependencies",
             |s| s,

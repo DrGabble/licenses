@@ -1,4 +1,7 @@
+use crate::Lint;
+
 pub struct Report {
+    pub lint: Lint,
     pub level: Level,
     pub message: String,
 }
@@ -12,6 +15,7 @@ pub enum Level {
 pub trait ReportIfAny<T> {
     fn report_if_any(
         self,
+        lint: Lint,
         level: Level,
         message: &str,
         item_to_string: impl Fn(T) -> String,
@@ -24,6 +28,7 @@ where
 {
     fn report_if_any(
         self,
+        lint: Lint,
         level: Level,
         message: &str,
         item_to_string: impl Fn(T) -> String,
@@ -33,6 +38,10 @@ where
         let mut strings: Vec<_> = items.map(item_to_string).collect();
         strings.sort();
         let message = format!("{} {}: {}", strings.len(), message, strings.join(", "));
-        Some(Report { level, message })
+        Some(Report {
+            lint,
+            level,
+            message,
+        })
     }
 }

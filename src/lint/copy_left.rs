@@ -1,4 +1,5 @@
 use super::report::{Level, Report, ReportIfAny};
+use crate::Lint;
 use crate::identity::IdentifiedLicense;
 
 pub fn copy_left(licenses: &[IdentifiedLicense]) -> Option<Report> {
@@ -6,6 +7,7 @@ pub fn copy_left(licenses: &[IdentifiedLicense]) -> Option<Report> {
         .iter()
         .filter(|l| l.ids().any(|l| l.is_copyleft()))
         .report_if_any(
+            Lint::CopyLeft,
             Level::Error,
             "files with at least one copy-left license",
             |l| l.license.file_name(),

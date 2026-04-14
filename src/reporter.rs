@@ -18,13 +18,11 @@ impl Reporter {
         }
     }
 
-    pub fn report(&mut self, report: Option<Report>) {
-        if let Some(report) = report {
-            match report.level {
-                Level::Info => self.info(report.message),
-                Level::Warning => self.warning(report.message),
-                Level::Error => self.error(report.message),
-            }
+    pub fn report(&mut self, report: Report) {
+        match report.level {
+            Level::Info => self.info(report.message),
+            Level::Warning => self.warning(report.message),
+            Level::Error => self.error(report.message),
         }
     }
 
