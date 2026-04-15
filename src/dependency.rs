@@ -47,6 +47,6 @@ fn remote_licenses(
 fn should_search_remote(local: &[Local], search_remote: SearchRemote) -> bool {
     matches!(
         (local.len(), search_remote),
-        (0, SearchRemote::Auto) | (_, SearchRemote::Always)
+        (0, SearchRemote::IfNotLocal) | (_, SearchRemote::Always)
     )
 }

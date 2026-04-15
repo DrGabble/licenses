@@ -41,7 +41,7 @@ struct GetArguments {
     #[clap(flatten)]
     common: Arguments,
 
-    #[clap(short, long, default_value = "auto")]
+    #[clap(short, long, default_value = "never")]
     /// Whether to only search on disk or also remotely on github.com
     search_remote: SearchRemote,
 
@@ -81,13 +81,13 @@ struct Arguments {
     #[clap(short, long)]
     /// Package names to exclude from searching for license files (and their dependencies)
     excluded: Vec<String>,
-    #[clap(short, long, default_value = "false")]
+    #[clap(short, long, default_value_t = false)]
     /// Include dependencies only used during build
     build_dependencies: bool,
-    #[clap(short = 'v', long, default_value = "false")]
+    #[clap(short = 'v', long, default_value_t = false)]
     /// Include dependencies only used during dev (testing)
     dev_dependencies: bool,
-    #[clap(short, long, default_value = "false")]
+    #[clap(short, long, default_value_t = false)]
     /// Do not print any logging to stderr
     quiet: bool,
 }
@@ -97,7 +97,7 @@ enum SearchRemote {
     /// never search remotely for license files, only locally
     Never,
     /// search remotely for license files only if none are found locally
-    Auto,
+    IfNotLocal,
     /// always search remotely licenses, even if one or more found locally
     Always,
 }
