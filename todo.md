@@ -5,9 +5,7 @@
 - [ ] Workspace support
     - [ ] Warn if no license files in workspace crates? what if not published?
 - [ ] Add suggested fixes in the reports?
-- [ ] more commands
-    - [ ] Add a "add" command for quickly adding allow/warn/deny rules?
-
+- [ ] Add a "add" command for quickly adding allow/warn/deny rules?
 - [ ] extra lints
     - [ ] Lint for unused allow/warn/deny flags/config
     - [ ] lint for deciding minimal set of licenses needed and warning on extra ones that aint needed
@@ -15,6 +13,7 @@
     - [ ] Compare projects SPDX license (if any) with compatibility with licenses
     - [ ] Warn if no "license-file" file filled out in cargo
 - [ ] Error for "cargo run -- prune INVALID" is weirdly formatted
+- [ ] Make sure remote licenses from repos are from the right commit / version
 
 # Done
 - [x] Don't use "tests" license to fix Pixar detection bug in identity: use a license file just for that in src
