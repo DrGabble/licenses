@@ -1,5 +1,4 @@
 mod check;
-mod dependency;
 mod filter;
 mod get;
 mod identity;
@@ -7,6 +6,7 @@ mod license;
 mod lint;
 mod local;
 mod package;
+mod package_licenses;
 mod remote;
 mod reporter;
 mod summary;

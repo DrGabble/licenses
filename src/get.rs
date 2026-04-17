@@ -1,13 +1,13 @@
-use crate::dependency::Dependency;
-use crate::{GetArguments, dependency, remote};
+use crate::package_licenses::PackageLicenses;
+use crate::{GetArguments, package_licenses, remote};
 use indicatif::ProgressIterator;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
-    let deps = dependency::dependencies(args)?;
-    let no_licenses = dependencies_with_no_licenses(&deps);
+    let dependencies = package_licenses::package_licenses(args)?;
+    let no_licenses = dependencies_with_no_licenses(&dependencies);
     if !no_licenses.is_empty() {
         reporter.warning(format!(
             "{} dependencies with no licenses: {}",
@@ -16,26 +16,29 @@ pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
         ));
     }
     std::fs::create_dir_all(&args.common.license_directory)?;
-    for dependency in deps.iter().progress_count(deps.len() as u64) {
+    for dependency in dependencies
+        .iter()
+        .progress_count(dependencies.len() as u64)
+    {
         copy_local(args, dependency)?;
         copy_remote(args, dependency)?;
     }
     reporter.info(format!(
         "{} licenses found for {} dependencies",
-        total_licenses(&deps),
-        deps.len()
+        total_licenses(&dependencies),
+        dependencies.len()
     ));
     Ok(reporter.exit_code())
 }
 
-fn total_licenses(dependencies: &[Dependency]) -> usize {
+fn total_licenses(dependencies: &[PackageLicenses]) -> usize {
     dependencies
         .iter()
         .map(|d| d.local_licenses.len() + d.remote_licenses.len())
         .sum()
 }
 
-fn dependencies_with_no_licenses(dependencies: &[Dependency]) -> Vec<String> {
+fn dependencies_with_no_licenses(dependencies: &[PackageLicenses]) -> Vec<String> {
     dependencies
         .iter()
         .filter(|d| d.local_licenses.is_empty() && d.remote_licenses.is_empty())
@@ -43,7 +46,7 @@ fn dependencies_with_no_licenses(dependencies: &[Dependency]) -> Vec<String> {
         .collect()
 }
 
-fn copy_local(args: &GetArguments, dependency: &Dependency) -> anyhow::Result<()> {
+fn copy_local(args: &GetArguments, dependency: &PackageLicenses) -> anyhow::Result<()> {
     for license in &dependency.local_licenses {
         std::fs::copy(
             &license.location,
@@ -53,7 +56,7 @@ fn copy_local(args: &GetArguments, dependency: &Dependency) -> anyhow::Result<()
     Ok(())
 }
 
-fn copy_remote(args: &GetArguments, dependency: &Dependency) -> anyhow::Result<()> {
+fn copy_remote(args: &GetArguments, dependency: &PackageLicenses) -> anyhow::Result<()> {
     for license in &dependency.remote_licenses {
         let output_path = output_file(&args.common.license_directory, dependency, &license.name);
         remote::download(&license.location, &output_path)?;
@@ -61,7 +64,11 @@ fn copy_remote(args: &GetArguments, dependency: &Dependency) -> anyhow::Result<(
     Ok(())
 }
 
-fn output_file(output_directory: &Path, dependency: &Dependency, license_name: &str) -> PathBuf {
+fn output_file(
+    output_directory: &Path,
+    dependency: &PackageLicenses,
+    license_name: &str,
+) -> PathBuf {
     let file_name = format!("{}-{}", dependency.name, license_name);
     output_directory.join(file_name)
 }
