@@ -66,20 +66,11 @@ fn license_type_summary(license_type: &str, licenses: &[IdentifiedLicense]) -> L
 
 fn unknown_license_type_summary(licenses: &[IdentifiedLicense]) -> LicenseSummary {
     let is_license_type = move |l: &&IdentifiedLicense| l.ids().next().is_none();
-    let no_other_licenses = |package: &str| {
-        licenses
-            .iter()
-            .filter(|l| l.license.package == package)
-            .flat_map(|l| l.ids())
-            .next()
-            .is_none()
-    };
     let packages: Vec<_> = licenses
         .iter()
         .filter(is_license_type)
         .map(|l| l.license.package.clone())
         .unique()
-        .filter(|p| no_other_licenses(p))
         .sorted()
         .collect();
     let license_count = licenses.iter().filter(is_license_type).count();

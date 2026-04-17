@@ -81,7 +81,7 @@ struct PruneArguments {
     #[clap(flatten)]
     common: Arguments,
 
-    // License names in preference order to keep. If not set, will arbitrarily prefer alphabetical (e.g. Apache-2.0 > MIT > Unlicense).
+    /// License names in preference order to keep. Otherwise will arbitrarily prefer alphabetical (e.g. Apache-2.0 > MIT > Unlicense).
     licenses: Vec<spdx::Licensee>,
 }
 
