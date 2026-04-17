@@ -23,7 +23,7 @@ pub fn identified_licenses(licenses: &'_ [Local]) -> anyhow::Result<Vec<Identifi
     store.add_variant(
         "Apache-2.0",
         LicenseType::Alternate,
-        include_str!("../tests/anyhow-LICENSE-APACHE").into(),
+        include_str!("apache-license.txt").into(),
     )?;
     let scanner = Scanner::new(&store).optimize(true /* look for multi-license files */);
     licenses
