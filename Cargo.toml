@@ -17,9 +17,6 @@ colored = "*"
 tabled = "*"
 itertools = "*"
 terminal_size = "*"
-serde_json = "*"
-ctrlc = "*"
-jiff = { version = "*", features = ["serde"] }
 documented = "*"
 crates_io_api = "*"
 # without the "vendored" openssl, crates_io_api drags in a version of openssl that always recompiles,
@@ -29,3 +26,6 @@ openssl = { version = "*", features = ["vendored"] }
 
 [dev-dependencies]
 tempfile = "*"
+
+[package.metadata.licenses]
+allow = ["copy-left"]
