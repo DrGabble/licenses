@@ -1,6 +1,6 @@
 use crate::Lint;
+use crate::license::local::Local;
 use crate::lint::{Level, Report};
-use crate::local::Local;
 use crate::package::Package;
 use std::collections::HashSet;
 

@@ -1,5 +1,5 @@
 use crate::package_licenses::PackageLicenses;
-use crate::{GetArguments, package_licenses, remote};
+use crate::{GetArguments, package_licenses};
 use indicatif::ProgressIterator;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -63,7 +63,7 @@ fn copy_local(args: &GetArguments, dependency: &PackageLicenses) -> anyhow::Resu
 fn copy_remote(args: &GetArguments, dependency: &PackageLicenses) -> anyhow::Result<()> {
     for license in &dependency.remote_licenses {
         let output_path = output_file(&args.common.license_directory, dependency, &license.name);
-        remote::download(&license.location, &output_path)?;
+        crate::license::remote::download(&license.location, &output_path)?;
     }
     Ok(())
 }

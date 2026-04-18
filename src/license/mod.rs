@@ -1,3 +1,6 @@
+pub mod local;
+pub mod remote;
+
 use crate::package::Version;
 
 #[derive(Debug, PartialEq)]

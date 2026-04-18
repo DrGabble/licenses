@@ -1,4 +1,4 @@
-use crate::local::Local;
+use crate::license::local::Local;
 use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 use spdx::LicenseId;
