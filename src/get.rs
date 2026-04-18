@@ -46,7 +46,7 @@ fn dependencies_with_no_licenses(dependencies: &[PackageLicenses]) -> Vec<String
     dependencies
         .iter()
         .filter(|d| d.local_licenses.is_empty() && d.remote_licenses.is_empty())
-        .map(|d| d.name.clone())
+        .map(|d| d.id.to_string())
         .collect()
 }
 
@@ -74,9 +74,6 @@ fn output_file(
     dependency: &PackageLicenses,
     license_name: &str,
 ) -> PathBuf {
-    let file_name = format!(
-        "{}_{}_{}",
-        dependency.name, dependency.version, license_name
-    );
+    let file_name = format!("{}_{}", dependency.id, license_name);
     output_directory.join(file_name)
 }

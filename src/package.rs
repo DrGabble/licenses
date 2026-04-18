@@ -1,30 +1,23 @@
 use crate::Arguments;
-use cargo_metadata::{DepKindInfo, DependencyKind, Metadata, PackageId};
+use crate::package_id::PackageId;
+use cargo_metadata::{DepKindInfo, DependencyKind, Metadata};
 use itertools::Itertools;
 use std::path::PathBuf;
 
 pub use cargo_metadata::semver::Version;
 
 pub struct Package {
-    pub name: String,
-    pub version: Version,
+    pub id: PackageId,
     pub project_folder: PathBuf,
     pub repository: Option<String>,
     pub spdx_license: Option<spdx::Expression>,
 }
 
-impl Package {
-    pub fn id(&self) -> String {
-        format!("{}_{}", self.name, self.version)
-    }
-}
-
 impl From<&cargo_metadata::Package> for Package {
     fn from(package: &cargo_metadata::Package) -> Self {
         Self {
-            name: package.name.replace('_', "-"), // underscores used to seperate version and license file name
+            id: PackageId::from(package),
             repository: package.repository.clone(),
-            version: package.version.clone(),
             project_folder: package
                 .manifest_path
                 .as_std_path()
@@ -60,10 +53,13 @@ pub fn dependencies(args: &Arguments, metadata: &Metadata) -> impl Iterator<Item
         .iter()
         .filter(move |package| included.contains(&package.id))
         .map(Package::from)
-        .dedup_by(|a, b| (&a.name, &a.version) == (&b.name, &b.version))
+        .dedup_by(|a, b| a.id == b.id)
 }
 
-fn excluded_ids<'m>(metadata: &'m Metadata, excluded: &[String]) -> Vec<&'m PackageId> {
+fn excluded_ids<'m>(
+    metadata: &'m Metadata,
+    excluded: &[String],
+) -> Vec<&'m cargo_metadata::PackageId> {
     metadata
         .packages
         .iter()
@@ -74,10 +70,10 @@ fn excluded_ids<'m>(metadata: &'m Metadata, excluded: &[String]) -> Vec<&'m Pack
 
 fn included_ids(
     metadata: &Metadata,
-    excluded: &[&PackageId],
+    excluded: &[&cargo_metadata::PackageId],
     build_dependencies: bool,
     dev_dependencies: bool,
-) -> Vec<PackageId> {
+) -> Vec<cargo_metadata::PackageId> {
     let mut unvisited: Vec<_> = metadata
         .workspace_members
         .iter()

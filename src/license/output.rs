@@ -1,19 +1,15 @@
 use crate::package::Version;
+use crate::package_id::PackageId;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, PartialEq)]
 pub struct OutputLicense {
-    pub package: String,
-    pub version: Version,
+    pub package_id: PackageId,
     pub name: String,
     pub location: PathBuf,
 }
 
 impl OutputLicense {
-    pub fn package_id(&self) -> String {
-        format!("{}_{}", self.package, self.version)
-    }
-
     pub fn location_file_name(&self) -> String {
         self.location
             .file_name()
@@ -41,8 +37,7 @@ fn from_output_folder(location: PathBuf) -> Option<OutputLicense> {
     let (version, name) = suffix.split_once('_')?;
 
     Some(OutputLicense {
-        package: package.to_string(),
-        version: Version::parse(version).ok()?,
+        package_id: PackageId::new(package, Version::parse(version).ok()?),
         name: name.to_string(),
         location,
     })

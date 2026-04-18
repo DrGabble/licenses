@@ -6,6 +6,7 @@ mod license;
 mod lint;
 mod metadata;
 mod package;
+mod package_id;
 mod package_licenses;
 mod prune;
 mod report;

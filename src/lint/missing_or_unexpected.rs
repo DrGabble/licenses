@@ -8,16 +8,16 @@ pub fn missing_or_unexpected(
     dependencies: &[Package],
     licenses: &[OutputLicense],
 ) -> (Vec<Report>, Vec<Report>) {
-    let expected: HashSet<_> = dependencies.iter().map(|p| p.id()).collect();
-    let found: HashSet<_> = licenses.iter().map(|l| l.package_id()).collect();
+    let expected: HashSet<_> = dependencies.iter().map(|p| p.id.clone()).collect();
+    let found: HashSet<_> = licenses.iter().map(|l| l.package_id.clone()).collect();
 
     let missing = expected
         .difference(&found)
         .cloned()
-        .map(|item| Report {
+        .map(|id| Report {
             lint: Lint::Missing,
             level: Level::Error,
-            item,
+            item: id.to_string(),
         })
         .collect();
 
@@ -26,7 +26,7 @@ pub fn missing_or_unexpected(
         .flat_map(|id| {
             licenses
                 .iter()
-                .filter(|l| l.package_id() == *id)
+                .filter(|l| l.package_id == *id)
                 .map(|l| l.location_file_name())
         })
         .map(|item| Report {

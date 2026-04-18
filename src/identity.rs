@@ -74,7 +74,7 @@ fn possible_ids_from_word(word: &str) -> impl Iterator<Item = LicenseId> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::package::Version;
+    use crate::{package::Version, package_id::PackageId};
     use std::io::Write;
 
     #[test]
@@ -82,8 +82,7 @@ mod test {
         let apache_license_id = spdx::license_id("Apache-2.0").unwrap();
         let license_file = temp_file(include_bytes!("../tests/ahash_1.0.0_LICENSE-APACHE"));
         let licenses = [OutputLicense {
-            package: "ahash".to_string(),
-            version: Version::parse("1.0.0").unwrap(),
+            package_id: PackageId::new("ahash", Version::parse("1.0.0").unwrap()),
             name: "LICENSE-APACHE".to_string(),
             location: license_file.to_path_buf(),
         }];
@@ -102,8 +101,7 @@ mod test {
         let apache_license_id = spdx::license_id("Apache-2.0").unwrap();
         let license_file = temp_file(include_bytes!("../tests/anyhow_1.0.0_LICENSE-APACHE"));
         let licenses = [OutputLicense {
-            package: "anyhow".to_string(),
-            version: Version::parse("1.0.0").unwrap(),
+            package_id: PackageId::new("anyhow", Version::parse("1.0.0").unwrap()),
             name: "LICENSE-APACHE".to_string(),
             location: license_file.to_path_buf(),
         }];
