@@ -1,6 +1,4 @@
-use std::path::PathBuf;
-
-use crate::license::RemoteLicense;
+use crate::license::{LocalLicense, RemoteLicense};
 use crate::metadata::Metadata;
 use crate::package::{Package, Version};
 use crate::{GetArguments, SearchRemote, package};
@@ -8,7 +6,7 @@ use crate::{GetArguments, SearchRemote, package};
 pub struct PackageLicenses {
     pub name: String,
     pub version: Version,
-    pub local_licenses: Vec<PathBuf>,
+    pub local_licenses: Vec<LocalLicense>,
     pub remote_licenses: Vec<RemoteLicense>,
 }
 
@@ -40,7 +38,7 @@ fn remote_licenses(
     search_remote: SearchRemote,
     keywords: &[String],
     package: &Package,
-    local: &[PathBuf],
+    local: &[LocalLicense],
 ) -> anyhow::Result<Vec<RemoteLicense>> {
     if let Some(repo_url) = &package.repository
         && should_search_remote(local, search_remote)
@@ -51,7 +49,7 @@ fn remote_licenses(
     }
 }
 
-fn should_search_remote(local: &[PathBuf], search_remote: SearchRemote) -> bool {
+fn should_search_remote(local: &[LocalLicense], search_remote: SearchRemote) -> bool {
     matches!(
         (local.len(), search_remote),
         (0, SearchRemote::IfNotLocal) | (_, SearchRemote::Always)

@@ -1,7 +1,21 @@
 use crate::license;
 use std::path::{Path, PathBuf};
 
-pub type LocalLicense = PathBuf;
+pub struct LocalLicense(PathBuf);
+
+impl LocalLicense {
+    pub fn path(&self) -> &Path {
+        &self.0
+    }
+
+    pub fn name(&self) -> String {
+        self.0
+            .file_name()
+            .expect("invalid local license file path")
+            .to_string_lossy()
+            .to_string()
+    }
+}
 
 pub fn package_local_licenses(keywords: &[String], project_folder: &Path) -> Vec<LocalLicense> {
     std::fs::read_dir(project_folder)
@@ -9,6 +23,7 @@ pub fn package_local_licenses(keywords: &[String], project_folder: &Path) -> Vec
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
         .filter(|path| is_license(keywords, path))
+        .map(LocalLicense)
         .collect()
 }
 

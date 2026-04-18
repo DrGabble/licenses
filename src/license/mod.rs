@@ -2,7 +2,7 @@ mod local;
 mod output;
 mod remote;
 
-pub use local::package_local_licenses;
+pub use local::{LocalLicense, package_local_licenses};
 pub use output::{OutputLicense, output_folder_licenses};
 pub use remote::{RemoteLicense, download, package_remote_licenses};
 
