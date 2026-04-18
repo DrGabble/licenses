@@ -27,7 +27,7 @@ pub fn missing_or_unexpected(
             licenses
                 .iter()
                 .filter(|l| l.package == *p)
-                .map(|l| l.file_name())
+                .map(|l| l.location_file_name())
         })
         .map(|item| Report {
             lint: Lint::Unexpected,

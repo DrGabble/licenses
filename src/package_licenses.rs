@@ -1,11 +1,12 @@
 use crate::local::Local;
 use crate::metadata::Metadata;
-use crate::package::Package;
+use crate::package::{Package, Version};
 use crate::remote::Remote;
 use crate::{GetArguments, SearchRemote, local, package, remote};
 
 pub struct PackageLicenses {
     pub name: String,
+    pub version: Version,
     pub local_licenses: Vec<Local>,
     pub remote_licenses: Vec<Remote>,
 }
@@ -28,6 +29,7 @@ fn package_to_dependency(
     let remote = remote_licenses(search_remote, keywords, &package, &local)?;
     Ok(PackageLicenses {
         name: package.name,
+        version: package.version,
         local_licenses: local,
         remote_licenses: remote,
     })

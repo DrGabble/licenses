@@ -39,7 +39,7 @@ fn extraneous_package_licenses<'a>(
         Some(required) => package_licenses
             .into_iter()
             .filter(|l| !required.iter().any(|r| r.name != l.license.name))
-            .map(|l| format!("{} (not {})", l.license.file_name(), expression))
+            .map(|l| format!("{} (not {})", l.license.location_file_name(), expression))
             .collect(),
         None => Vec::new(),
     }

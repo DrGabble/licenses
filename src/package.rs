@@ -2,9 +2,12 @@ use crate::Arguments;
 use cargo_metadata::{DepKindInfo, DependencyKind, Metadata, PackageId};
 use std::path::PathBuf;
 
+pub use cargo_metadata::semver::Version;
+
 pub struct Package {
     pub name: String,
     pub repository: Option<String>,
+    pub version: Version,
     pub project_folder: PathBuf,
     pub spdx_license: Option<spdx::Expression>,
 }
@@ -12,8 +15,9 @@ pub struct Package {
 impl From<&cargo_metadata::Package> for Package {
     fn from(package: &cargo_metadata::Package) -> Self {
         Self {
-            name: package.name.replace('-', "_"),
+            name: package.name.replace('_', "-"), // underscores used to seperate version and license file name
             repository: package.repository.clone(),
+            version: package.version.clone(),
             project_folder: package
                 .manifest_path
                 .as_std_path()

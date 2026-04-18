@@ -1,6 +1,9 @@
+use crate::package::Version;
+
 #[derive(Debug, PartialEq)]
 pub struct License<T> {
     pub package: String,
+    pub version: Version,
     pub name: String,
     pub location: T,
 }

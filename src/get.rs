@@ -9,6 +9,7 @@ pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
     let dependencies = package_licenses::package_licenses(args, &metadata)?;
     let no_licenses = dependencies_with_no_licenses(&dependencies);
+
     reporter.info(format!(
         "{} licenses found for {} dependencies",
         total_licenses(&dependencies),
@@ -21,6 +22,7 @@ pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
             no_licenses.join(", ")
         ));
     }
+
     std::fs::create_dir_all(&args.common.license_directory)?;
     for dependency in dependencies
         .iter()
@@ -29,6 +31,7 @@ pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
         copy_local(args, dependency)?;
         copy_remote(args, dependency)?;
     }
+
     Ok(reporter.exit_code())
 }
 
@@ -65,11 +68,15 @@ fn copy_remote(args: &GetArguments, dependency: &PackageLicenses) -> anyhow::Res
     Ok(())
 }
 
+// TODO put this in a file called "output", make a special type for it
 fn output_file(
     output_directory: &Path,
     dependency: &PackageLicenses,
     license_name: &str,
 ) -> PathBuf {
-    let file_name = format!("{}-{}", dependency.name, license_name);
+    let file_name = format!(
+        "{}_{}_{}",
+        dependency.name, dependency.version, license_name
+    );
     output_directory.join(file_name)
 }

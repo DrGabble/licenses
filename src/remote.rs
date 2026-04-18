@@ -1,4 +1,5 @@
 use crate::license::{License, is_license};
+use crate::package::Version;
 use anyhow::{Context, anyhow};
 use serde::Deserialize;
 use std::path::Path;
@@ -22,6 +23,7 @@ pub fn package_remote_licenses(
         .filter(|file| is_license(keywords, &file.name))
         .map(|file| Remote {
             package: package.to_string(),
+            version: Version::parse("0.0.0").unwrap(), // Replace with actual version if available
             location: file.download_url.unwrap(),
             name: file.name,
         }))
