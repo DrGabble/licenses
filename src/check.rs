@@ -11,7 +11,7 @@ pub fn check(args: &CheckArguments) -> anyhow::Result<ExitCode> {
     let filter_rules = crate::filter::FilterRules::new(&config, args);
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
     let dependencies: Vec<_> = crate::package::dependencies(&args.common, &metadata).collect();
-    let licenses = crate::license::local::output_folder_licenses(&args.common.license_directory);
+    let licenses = crate::license::output::output_folder_licenses(&args.common.license_directory);
     let (missing, unexpected) = missing_or_unexpected(&dependencies, &licenses);
     let licenses = crate::identity::identified_licenses(&licenses)?;
 

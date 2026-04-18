@@ -1,4 +1,5 @@
-use crate::license::local::Local;
+use std::path::PathBuf;
+
 use crate::license::remote::Remote;
 use crate::metadata::Metadata;
 use crate::package::{Package, Version};
@@ -7,7 +8,7 @@ use crate::{GetArguments, SearchRemote, package};
 pub struct PackageLicenses {
     pub name: String,
     pub version: Version,
-    pub local_licenses: Vec<Local>,
+    pub local_licenses: Vec<PathBuf>,
     pub remote_licenses: Vec<Remote>,
 }
 
@@ -25,7 +26,8 @@ fn package_to_dependency(
     keywords: &[String],
     package: Package,
 ) -> anyhow::Result<PackageLicenses> {
-    let local: Vec<_> = crate::license::local::package_local_licenses(keywords, &package);
+    let local: Vec<_> =
+        crate::license::local::package_local_licenses(keywords, &package.project_folder);
     let remote = remote_licenses(search_remote, keywords, &package, &local)?;
     Ok(PackageLicenses {
         name: package.name,
@@ -39,7 +41,7 @@ fn remote_licenses(
     search_remote: SearchRemote,
     keywords: &[String],
     package: &Package,
-    local: &[Local],
+    local: &[PathBuf],
 ) -> anyhow::Result<Vec<Remote>> {
     if let Some(repo_url) = &package.repository
         && should_search_remote(local, search_remote)
@@ -50,7 +52,7 @@ fn remote_licenses(
     }
 }
 
-fn should_search_remote(local: &[Local], search_remote: SearchRemote) -> bool {
+fn should_search_remote(local: &[PathBuf], search_remote: SearchRemote) -> bool {
     matches!(
         (local.len(), search_remote),
         (0, SearchRemote::IfNotLocal) | (_, SearchRemote::Always)

@@ -1,4 +1,4 @@
-use crate::license::local::Local;
+use crate::license::output::Output;
 use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 use spdx::LicenseId;
@@ -7,7 +7,7 @@ use spdx::detection::scan::Scanner;
 
 #[derive(Debug, PartialEq)]
 pub struct IdentifiedLicense<'a> {
-    pub license: &'a Local,
+    pub license: &'a Output,
     pub id_from_name: Option<LicenseId>,
     pub ids_from_content: Vec<LicenseId>,
 }
@@ -18,7 +18,7 @@ impl IdentifiedLicense<'_> {
     }
 }
 
-pub fn identified_licenses(licenses: &'_ [Local]) -> anyhow::Result<Vec<IdentifiedLicense<'_>>> {
+pub fn identified_licenses(licenses: &'_ [Output]) -> anyhow::Result<Vec<IdentifiedLicense<'_>>> {
     let mut store = spdx::detection::Store::load_inline()?;
     store.add_variant(
         "Apache-2.0",
@@ -35,7 +35,7 @@ pub fn identified_licenses(licenses: &'_ [Local]) -> anyhow::Result<Vec<Identifi
 
 fn identify_license<'a>(
     scanner: &Scanner,
-    license: &'a Local,
+    license: &'a Output,
 ) -> anyhow::Result<IdentifiedLicense<'a>> {
     Ok(IdentifiedLicense {
         id_from_name: id_from_name(license),
@@ -44,7 +44,7 @@ fn identify_license<'a>(
     })
 }
 
-fn ids_from_content(scanner: &Scanner, license: &Local) -> anyhow::Result<Vec<LicenseId>> {
+fn ids_from_content(scanner: &Scanner, license: &Output) -> anyhow::Result<Vec<LicenseId>> {
     let scanned = scanner.scan(&std::fs::read_to_string(&license.location)?.into());
     Ok(scanned
         .license
@@ -54,7 +54,7 @@ fn ids_from_content(scanner: &Scanner, license: &Local) -> anyhow::Result<Vec<Li
         .collect())
 }
 
-fn id_from_name(license: &Local) -> Option<LicenseId> {
+fn id_from_name(license: &Output) -> Option<LicenseId> {
     // slightly arbitrarily preferring earlier words, and more precise names
     license
         .name
@@ -79,7 +79,7 @@ mod test {
     fn test_identified_licenses() {
         let apache_license_id = spdx::license_id("Apache-2.0").unwrap();
         let license_file = temp_file(include_bytes!("../tests/ahash_1.0.0_LICENSE-APACHE"));
-        let licenses = [Local {
+        let licenses = [Output {
             package: "ahash".to_string(),
             version: Version::parse("1.0.0").unwrap(),
             name: "LICENSE-APACHE".to_string(),
@@ -99,7 +99,7 @@ mod test {
     fn test_identified_licenses_is_not_pixar_pixar() {
         let apache_license_id = spdx::license_id("Apache-2.0").unwrap();
         let license_file = temp_file(include_bytes!("../tests/anyhow_1.0.0_LICENSE-APACHE"));
-        let licenses = [Local {
+        let licenses = [Output {
             package: "anyhow".to_string(),
             version: Version::parse("1.0.0").unwrap(),
             name: "LICENSE-APACHE".to_string(),

@@ -1,4 +1,5 @@
 pub mod local;
+pub mod output;
 pub mod remote;
 
 pub fn is_license(keywords: &[String], file_name: &str) -> bool {

@@ -12,7 +12,7 @@ pub fn prune(args: &PruneArguments) -> anyhow::Result<ExitCode> {
     let reporter = crate::reporter::Reporter::new(args.common.quiet);
     let metadata = crate::metadata::crate_metadata(&args.common.project_directory)?;
     let dependencies: Vec<_> = crate::package::dependencies(&args.common, &metadata).collect();
-    let licenses = crate::license::local::output_folder_licenses(&args.common.license_directory);
+    let licenses = crate::license::output::output_folder_licenses(&args.common.license_directory);
     let licenses = crate::identity::identified_licenses(&licenses)?;
     let extraneous = extraneous_licenses(&args.licenses, &dependencies, &licenses);
 

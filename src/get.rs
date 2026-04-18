@@ -52,9 +52,13 @@ fn dependencies_with_no_licenses(dependencies: &[PackageLicenses]) -> Vec<String
 
 fn copy_local(args: &GetArguments, dependency: &PackageLicenses) -> anyhow::Result<()> {
     for license in &dependency.local_licenses {
+        let license_name = license
+            .file_name()
+            .expect("invalid local license file path")
+            .to_string_lossy();
         std::fs::copy(
-            &license.location,
-            output_file(&args.common.license_directory, dependency, &license.name),
+            license,
+            output_file(&args.common.license_directory, dependency, &license_name),
         )?;
     }
     Ok(())
