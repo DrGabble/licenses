@@ -1,5 +1,5 @@
+use crate::config::Config;
 use crate::lint::{Level, Report};
-use crate::metadata::Config;
 use crate::{CheckArguments, Lint};
 use clap::ValueEnum;
 use std::collections::HashMap;

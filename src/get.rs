@@ -5,7 +5,7 @@ use indicatif::ProgressIterator;
 use std::process::ExitCode;
 
 pub fn get(args: &GetArguments) -> anyhow::Result<ExitCode> {
-    let metadata = crate::metadata::crate_metadata(&args.common.project_directory)?;
+    let metadata = crate::config::crate_metadata(&args.common.project_directory)?;
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
     let dependencies = package_licenses(args, &metadata)?;
     let no_licenses = dependencies_with_no_licenses(&dependencies);

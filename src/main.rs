@@ -1,10 +1,10 @@
 mod check;
+mod config;
 mod filter;
 mod get;
 mod identity;
 mod license;
 mod lint;
-mod metadata;
 mod package;
 mod prune;
 mod report;

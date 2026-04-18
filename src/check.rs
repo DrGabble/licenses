@@ -6,8 +6,8 @@ use crate::lint::{
 use std::process::ExitCode;
 
 pub fn check(args: &CheckArguments) -> anyhow::Result<ExitCode> {
-    let metadata = crate::metadata::crate_metadata(&args.common.project_directory)?;
-    let config = crate::metadata::config(&metadata)?;
+    let metadata = crate::config::crate_metadata(&args.common.project_directory)?;
+    let config = crate::config::config(&metadata)?;
     let filter_rules = crate::filter::FilterRules::new(&config, args);
     let mut reporter = crate::reporter::Reporter::new(args.common.quiet);
     let dependencies: Vec<_> = crate::package::dependencies(&args.common, &metadata).collect();

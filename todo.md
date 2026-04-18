@@ -16,9 +16,7 @@
 - [ ] Make sure remote licenses from repos are from the right commit / version
     - [ ] Get some kind of version for github licenses?
 - [ ] Handle license exceptions properly (what even are they?)
-- [ ] Only consider license "of package" if same name AND same version
 - [ ] "Excluded" ids in cli/config arguments do not include version number yet
-- [ ] Convert better from local / remote to output
 
 # Done
 - [x] Don't use "tests" license to fix Pixar detection bug in identity: use a license file just for that in src
@@ -31,6 +29,8 @@
 - [x] Version numbers in stored license name
 - [x] Conservative prune: only licenses that are in the SPDX expression but are not needed, leave unknown types.
 - [x] Put version numbers in file name! Dependencies may have different licenses at different versions!
+- [x] Convert better from local / remote to output
+- [x] Only consider license "of package" if same name AND same version
 
 # Dont Do
 - [ ] Combine "missing" and "unmet-spdx" alerts together?
