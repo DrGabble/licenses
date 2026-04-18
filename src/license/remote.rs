@@ -1,15 +1,16 @@
-use crate::license::{License, is_license};
-use crate::package::Version;
+use crate::license::is_license;
 use anyhow::{Context, anyhow};
 use serde::Deserialize;
 use std::path::Path;
 use url::Url;
 
-pub type Remote = License<Url>;
+pub struct Remote {
+    pub name: String,
+    pub location: Url,
+}
 
 pub fn package_remote_licenses(
     keywords: &[String],
-    package: &str,
     repo_url: &str,
 ) -> anyhow::Result<impl Iterator<Item = Remote>> {
     Ok(ureq::Agent::new_with_defaults()
@@ -22,8 +23,6 @@ pub fn package_remote_licenses(
         .into_iter()
         .filter(|file| is_license(keywords, &file.name))
         .map(|file| Remote {
-            package: package.to_string(),
-            version: Version::parse("0.0.0").unwrap(), // Replace with actual version if available
             location: file.download_url.unwrap(),
             name: file.name,
         }))

@@ -1,11 +1,20 @@
 use crate::license;
-use crate::license::License;
 use crate::package::{Package, Version};
 use std::path::{Path, PathBuf};
 
-pub type Local = License<PathBuf>;
+#[derive(Debug, PartialEq)]
+pub struct Local {
+    pub package: String,
+    pub version: Version,
+    pub name: String,
+    pub location: PathBuf,
+}
 
 impl Local {
+    pub fn package_id(&self) -> String {
+        format!("{}_{}", self.package, self.version)
+    }
+
     pub fn location_file_name(&self) -> String {
         self.location
             .file_name()

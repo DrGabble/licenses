@@ -44,10 +44,7 @@ fn remote_licenses(
     if let Some(repo_url) = &package.repository
         && should_search_remote(local, search_remote)
     {
-        Ok(
-            crate::license::remote::package_remote_licenses(keywords, &package.name, repo_url)?
-                .collect(),
-        )
+        Ok(crate::license::remote::package_remote_licenses(keywords, repo_url)?.collect())
     } else {
         Ok(Vec::new())
     }
