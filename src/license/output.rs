@@ -2,14 +2,14 @@ use crate::package::Version;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, PartialEq)]
-pub struct Output {
+pub struct OutputLicense {
     pub package: String,
     pub version: Version,
     pub name: String,
     pub location: PathBuf,
 }
 
-impl Output {
+impl OutputLicense {
     pub fn package_id(&self) -> String {
         format!("{}_{}", self.package, self.version)
     }
@@ -23,7 +23,7 @@ impl Output {
     }
 }
 
-pub fn output_folder_licenses(project_folder: &Path) -> Vec<Output> {
+pub fn output_folder_licenses(project_folder: &Path) -> Vec<OutputLicense> {
     let entries = match std::fs::read_dir(project_folder) {
         Ok(entries) => entries,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Vec::new(),
@@ -36,11 +36,11 @@ pub fn output_folder_licenses(project_folder: &Path) -> Vec<Output> {
         .collect()
 }
 
-fn from_output_folder(location: PathBuf) -> Option<Output> {
+fn from_output_folder(location: PathBuf) -> Option<OutputLicense> {
     let (package, suffix) = location.file_name()?.to_str()?.split_once('_')?;
     let (version, name) = suffix.split_once('_')?;
 
-    Some(Output {
+    Some(OutputLicense {
         package: package.to_string(),
         version: Version::parse(version).ok()?,
         name: name.to_string(),

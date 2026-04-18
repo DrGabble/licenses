@@ -1,9 +1,9 @@
 use crate::license;
 use std::path::{Path, PathBuf};
 
-pub type Local = PathBuf;
+pub type LocalLicense = PathBuf;
 
-pub fn package_local_licenses(keywords: &[String], project_folder: &Path) -> Vec<Local> {
+pub fn package_local_licenses(keywords: &[String], project_folder: &Path) -> Vec<LocalLicense> {
     std::fs::read_dir(project_folder)
         .expect("failed to read directory")
         .filter_map(|entry| entry.ok())

@@ -1,12 +1,12 @@
 use crate::Lint;
-use crate::license::output::Output;
+use crate::license::OutputLicense;
 use crate::lint::{Level, Report};
 use crate::package::Package;
 use std::collections::HashSet;
 
 pub fn missing_or_unexpected(
     dependencies: &[Package],
-    licenses: &[Output],
+    licenses: &[OutputLicense],
 ) -> (Vec<Report>, Vec<Report>) {
     let expected: HashSet<_> = dependencies.iter().map(|p| p.id()).collect();
     let found: HashSet<_> = licenses.iter().map(|l| l.package_id()).collect();

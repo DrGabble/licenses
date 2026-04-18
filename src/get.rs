@@ -67,7 +67,7 @@ fn copy_local(args: &GetArguments, dependency: &PackageLicenses) -> anyhow::Resu
 fn copy_remote(args: &GetArguments, dependency: &PackageLicenses) -> anyhow::Result<()> {
     for license in &dependency.remote_licenses {
         let output_path = output_file(&args.common.license_directory, dependency, &license.name);
-        crate::license::remote::download(&license.location, &output_path)?;
+        crate::license::download(license, &output_path)?;
     }
     Ok(())
 }
