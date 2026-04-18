@@ -17,7 +17,8 @@
     - [ ] Get some kind of version for github licenses?
 - [ ] Handle license exceptions properly (what even are they?)
 - [ ] Only consider license "of package" if same name AND same version
-- [ ] "Excluded" ids in 
+- [ ] "Excluded" ids in cli/config arguments do not include version number yet
+- [ ] Convert better from local / remote to output
 
 # Done
 - [x] Don't use "tests" license to fix Pixar detection bug in identity: use a license file just for that in src
